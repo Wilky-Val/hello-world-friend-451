@@ -1,5 +1,5 @@
 import { Link, useNavigate } from "@tanstack/react-router";
-import { LogOut, Package, Receipt, Wallet } from "lucide-react";
+import { Building2, LogOut, Package, Receipt, Wallet } from "lucide-react";
 import type { ReactNode } from "react";
 
 import { Button } from "@/components/ui/button";
@@ -9,7 +9,9 @@ const NAV = [
   { to: "/caisse", label: "Caisse", icon: Receipt },
   { to: "/stock", label: "Stock", icon: Package },
   { to: "/comptabilite", label: "Comptabilité", icon: Wallet },
+  { to: "/entreprise", label: "Entreprise", icon: Building2 },
 ] as const;
+
 
 export function AppShell({
   title,
