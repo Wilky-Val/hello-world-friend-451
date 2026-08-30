@@ -14,6 +14,7 @@ import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/
 import { Route as AuthRouteImport } from './routes/auth'
 import { Route as AuthenticatedCaisseRouteImport } from './routes/_authenticated/caisse'
 import { Route as AuthenticatedComptabiliteRouteImport } from './routes/_authenticated/comptabilite'
+import { Route as AuthenticatedEntrepriseRouteImport } from './routes/_authenticated/entreprise'
 import { Route as AuthenticatedStockRouteImport } from './routes/_authenticated/stock'
 
 const IndexRoute = IndexRouteImport.update({
@@ -41,6 +42,11 @@ const AuthenticatedComptabiliteRoute =
     path: '/comptabilite',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
+const AuthenticatedEntrepriseRoute = AuthenticatedEntrepriseRouteImport.update({
+  id: '/entreprise',
+  path: '/entreprise',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
 const AuthenticatedStockRoute = AuthenticatedStockRouteImport.update({
   id: '/stock',
   path: '/stock',
@@ -52,6 +58,7 @@ export interface FileRoutesByFullPath {
   '/auth': typeof AuthRoute
   '/caisse': typeof AuthenticatedCaisseRoute
   '/comptabilite': typeof AuthenticatedComptabiliteRoute
+  '/entreprise': typeof AuthenticatedEntrepriseRoute
   '/stock': typeof AuthenticatedStockRoute
 }
 export interface FileRoutesByTo {
@@ -59,6 +66,7 @@ export interface FileRoutesByTo {
   '/auth': typeof AuthRoute
   '/caisse': typeof AuthenticatedCaisseRoute
   '/comptabilite': typeof AuthenticatedComptabiliteRoute
+  '/entreprise': typeof AuthenticatedEntrepriseRoute
   '/stock': typeof AuthenticatedStockRoute
 }
 export interface FileRoutesById {
@@ -68,13 +76,15 @@ export interface FileRoutesById {
   '/auth': typeof AuthRoute
   '/_authenticated/caisse': typeof AuthenticatedCaisseRoute
   '/_authenticated/comptabilite': typeof AuthenticatedComptabiliteRoute
+  '/_authenticated/entreprise': typeof AuthenticatedEntrepriseRoute
   '/_authenticated/stock': typeof AuthenticatedStockRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/auth' | '/caisse' | '/comptabilite' | '/stock'
+  fullPaths:
+    '/' | '/auth' | '/caisse' | '/comptabilite' | '/entreprise' | '/stock'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/auth' | '/caisse' | '/comptabilite' | '/stock'
+  to: '/' | '/auth' | '/caisse' | '/comptabilite' | '/entreprise' | '/stock'
   id:
     | '__root__'
     | '/'
@@ -82,6 +92,7 @@ export interface FileRouteTypes {
     | '/auth'
     | '/_authenticated/caisse'
     | '/_authenticated/comptabilite'
+    | '/_authenticated/entreprise'
     | '/_authenticated/stock'
   fileRoutesById: FileRoutesById
 }
@@ -128,6 +139,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedComptabiliteRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/entreprise': {
+      id: '/_authenticated/entreprise'
+      path: '/entreprise'
+      fullPath: '/entreprise'
+      preLoaderRoute: typeof AuthenticatedEntrepriseRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/stock': {
       id: '/_authenticated/stock'
       path: '/stock'
@@ -141,12 +159,14 @@ declare module '@tanstack/react-router' {
 interface AuthenticatedRouteRouteChildren {
   AuthenticatedCaisseRoute: typeof AuthenticatedCaisseRoute
   AuthenticatedComptabiliteRoute: typeof AuthenticatedComptabiliteRoute
+  AuthenticatedEntrepriseRoute: typeof AuthenticatedEntrepriseRoute
   AuthenticatedStockRoute: typeof AuthenticatedStockRoute
 }
 
 const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedCaisseRoute: AuthenticatedCaisseRoute,
   AuthenticatedComptabiliteRoute: AuthenticatedComptabiliteRoute,
+  AuthenticatedEntrepriseRoute: AuthenticatedEntrepriseRoute,
   AuthenticatedStockRoute: AuthenticatedStockRoute,
 }
 
