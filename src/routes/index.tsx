@@ -1,24 +1,85 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
+import { Package, Receipt, Wallet } from "lucide-react";
 
-// No head() here: the home route inherits title/description/og/twitter from
-// __root.tsx, and ships no og:image so serve-time hosting can inject the
-// project's social preview (explicit og:image or latest screenshot).
 export const Route = createFileRoute("/")({
-  component: Index,
+  head: () => ({
+    meta: [
+      { title: "MiniPOS — Caisse, stock et comptabilité simple" },
+      {
+        name: "description",
+        content:
+          "Application POS simple : gestion de stock, dépenses et bénéfice, caisse avec ticket imprimable.",
+      },
+      { property: "og:title", content: "MiniPOS — Caisse, stock et comptabilité" },
+      {
+        property: "og:description",
+        content: "Gérez votre stock, vos dépenses et vos ventes avec fiche imprimable.",
+      },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary_large_image" },
+    ],
+  }),
+  component: Landing,
 });
 
-// IMPORTANT: Replace this placeholder. See ./README.md for routing conventions.
-function Index() {
+const FEATURES = [
+  {
+    icon: Package,
+    title: "Gestion de stock",
+    text: "Produits, quantités disponibles, prix d'achat et prix de vente.",
+  },
+  {
+    icon: Wallet,
+    title: "Comptabilité",
+    text: "Dépenses, coût d'achat des produits vendus et bénéfice net.",
+  },
+  {
+    icon: Receipt,
+    title: "Caisse",
+    text: "Encaissement rapide, monnaie à rendre et fiche à imprimer.",
+  },
+];
+
+function Landing() {
   return (
-    <div
-      className="flex min-h-screen items-center justify-center"
-      style={{ backgroundColor: "#fcfbf8" }}
-    >
-      <img
-        data-lovable-blank-page-placeholder="REMOVE_THIS"
-        src="https://cdn.gpteng.co/blank-app-v1.svg"
-        alt="Your app will live here!"
-      />
+    <div className="min-h-screen bg-background">
+      <div className="mx-auto max-w-4xl px-4 py-20">
+        <p className="text-sm font-medium tracking-widest text-primary uppercase">
+          Point de vente
+        </p>
+        <h1 className="mt-3 text-4xl font-semibold tracking-tight text-foreground sm:text-5xl">
+          Mini<span className="text-primary">POS</span> — votre boutique, sans complication
+        </h1>
+        <p className="mt-4 max-w-xl text-muted-foreground">
+          Trois fonctions essentielles : le stock, la comptabilité et la caisse avec ticket
+          imprimable.
+        </p>
+
+        <div className="mt-8 flex flex-wrap gap-3">
+          <Link
+            to="/caisse"
+            className="inline-flex items-center justify-center rounded-md bg-primary px-5 py-2.5 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90"
+          >
+            Ouvrir la caisse
+          </Link>
+          <Link
+            to="/auth"
+            className="inline-flex items-center justify-center rounded-md border border-input bg-background px-5 py-2.5 text-sm font-medium text-foreground transition-colors hover:bg-accent"
+          >
+            Se connecter
+          </Link>
+        </div>
+
+        <div className="mt-16 grid gap-4 sm:grid-cols-3">
+          {FEATURES.map(({ icon: Icon, title, text }) => (
+            <div key={title} className="rounded-xl border border-border bg-card p-5">
+              <Icon className="size-5 text-primary" />
+              <h2 className="mt-3 font-medium text-foreground">{title}</h2>
+              <p className="mt-1 text-sm text-muted-foreground">{text}</p>
+            </div>
+          ))}
+        </div>
+      </div>
     </div>
   );
 }

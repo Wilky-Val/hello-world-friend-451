@@ -142,3 +142,39 @@
     color: var(--color-foreground);
   }
 }
+
+/* POS theme: deep green primary */
+:root {
+  --primary: oklch(0.52 0.13 162);
+  --primary-foreground: oklch(0.99 0.01 160);
+  --ring: oklch(0.52 0.13 162);
+}
+
+.dark {
+  --primary: oklch(0.72 0.14 162);
+  --primary-foreground: oklch(0.18 0.03 162);
+  --ring: oklch(0.72 0.14 162);
+}
+
+@media print {
+  body * {
+    visibility: hidden;
+  }
+
+  .print-area,
+  .print-area * {
+    visibility: visible;
+  }
+
+  .print-area {
+    position: fixed;
+    inset: 0;
+    padding: 16px;
+    background: white;
+    color: black;
+  }
+
+  .no-print {
+    display: none !important;
+  }
+}
