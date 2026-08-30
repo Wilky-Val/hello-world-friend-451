@@ -79,11 +79,16 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
     meta: [
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
-      { title: "Lovable App" },
-      { name: "description", content: "Lovable Generated Project" },
-      { name: "author", content: "Lovable" },
-      { property: "og:title", content: "Lovable App" },
-      { property: "og:description", content: "Lovable Generated Project" },
+      { title: "MiniPOS — Caisse, stock et comptabilité" },
+      {
+        name: "description",
+        content: "Application POS simple : stock, dépenses et bénéfice, caisse avec ticket.",
+      },
+      { property: "og:title", content: "MiniPOS — Caisse, stock et comptabilité" },
+      {
+        property: "og:description",
+        content: "Stock, comptabilité et caisse avec fiche imprimable.",
+      },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
       { name: "twitter:site", content: "@Lovable" },
