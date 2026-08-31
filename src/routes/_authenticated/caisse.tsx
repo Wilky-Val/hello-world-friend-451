@@ -305,30 +305,37 @@ function CashierPage() {
             <DialogTitle className="no-print">Fiche de vente</DialogTitle>
           </DialogHeader>
           {receipt ? (
-            <div id="ticket" className="print-area font-mono text-sm">
+            <div
+              id="ticket"
+              className="print-area mx-auto w-[58mm] max-w-full font-mono text-[11px] leading-tight"
+            >
               <div className="text-center">
                 {business?.logo ? (
                   <img
                     src={business.logo}
                     alt={`Logo de ${business.profile?.name || "l'entreprise"}`}
-                    className="mx-auto mb-2 max-h-16 object-contain"
+                    className="mx-auto mb-1 max-h-12 object-contain"
                   />
                 ) : null}
-                <p className="text-base font-semibold">
+                <p className="text-sm font-bold uppercase">
                   {business?.profile?.name?.trim() || "MiniPOS"}
                 </p>
                 {business?.profile?.address ? (
-                  <p className="text-xs">{business.profile.address}</p>
+                  <p className="text-[10px]">{business.profile.address}</p>
                 ) : null}
                 {business?.profile?.phone ? (
-                  <p className="text-xs">Tél : {business.profile.phone}</p>
+                  <p className="text-[10px]">Tél : {business.profile.phone}</p>
                 ) : null}
-                <p className="text-xs">Ticket #{receipt.ticket_no}</p>
-                <p className="text-xs">{formatDate(receipt.created_at)}</p>
-                {receipt.customer ? <p className="text-xs">Client : {receipt.customer}</p> : null}
+                <div className="my-1 border-t border-dashed border-border" />
+                <p className="text-[10px]">Ticket #{receipt.ticket_no}</p>
+                <p className="text-[10px]">{formatDate(receipt.created_at)}</p>
+                {receipt.customer ? (
+                  <p className="text-[10px]">Client : {receipt.customer}</p>
+                ) : null}
               </div>
 
-              <div className="my-3 border-t border-dashed border-border" />
+              <div className="my-2 border-t border-dashed border-border" />
+
               {receipt.lines.map((l, i) => (
                 <div key={i} className="flex justify-between">
                   <span>
