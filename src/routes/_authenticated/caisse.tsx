@@ -17,6 +17,8 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { supabase } from "@/integrations/supabase/client";
+import { useBusiness } from "@/lib/business";
+
 import {
   cartCost,
   cartTotal,
@@ -59,7 +61,9 @@ type Receipt = {
 
 function CashierPage() {
   const qc = useQueryClient();
+  const { data: business } = useBusiness();
   const [search, setSearch] = useState("");
+
   const [lines, setLines] = useState<CartLine[]>([]);
   const [paid, setPaid] = useState("");
   const [customer, setCustomer] = useState("");
@@ -303,11 +307,27 @@ function CashierPage() {
           {receipt ? (
             <div id="ticket" className="print-area font-mono text-sm">
               <div className="text-center">
-                <p className="text-base font-semibold">MiniPOS</p>
+                {business?.logo ? (
+                  <img
+                    src={business.logo}
+                    alt={`Logo de ${business.profile?.name || "l'entreprise"}`}
+                    className="mx-auto mb-2 max-h-16 object-contain"
+                  />
+                ) : null}
+                <p className="text-base font-semibold">
+                  {business?.profile?.name?.trim() || "MiniPOS"}
+                </p>
+                {business?.profile?.address ? (
+                  <p className="text-xs">{business.profile.address}</p>
+                ) : null}
+                {business?.profile?.phone ? (
+                  <p className="text-xs">Tél : {business.profile.phone}</p>
+                ) : null}
                 <p className="text-xs">Ticket #{receipt.ticket_no}</p>
                 <p className="text-xs">{formatDate(receipt.created_at)}</p>
                 {receipt.customer ? <p className="text-xs">Client : {receipt.customer}</p> : null}
               </div>
+
               <div className="my-3 border-t border-dashed border-border" />
               {receipt.lines.map((l, i) => (
                 <div key={i} className="flex justify-between">
