@@ -332,20 +332,28 @@ function CashierPage() {
               </p>
             ) : (
               <div className="grid gap-2 sm:grid-cols-2 xl:grid-cols-3">
-                {filtered.map((p) => (
-                  <button
-                    key={p.id}
-                    type="button"
-                    onClick={() => addLine(p)}
-                    className="rounded-lg border border-border bg-card p-3 text-left transition-colors hover:border-primary hover:bg-primary/5"
-                  >
-                    <p className="truncate text-sm font-medium text-foreground">{p.name}</p>
-                    <p className="text-sm text-primary">{formatMoney(Number(p.sale_price))}</p>
-                    <p className="text-xs text-muted-foreground">
-                      Stock : {Number(p.stock_qty)}
-                    </p>
-                  </button>
-                ))}
+                {filtered.map((p) => {
+                  const empty = Number(p.stock_qty) < 1;
+                  return (
+                    <button
+                      key={p.id}
+                      type="button"
+                      disabled={empty}
+                      onClick={() => addLine(p)}
+                      className="rounded-lg border border-border bg-card p-3 text-left transition-colors hover:border-primary hover:bg-primary/5 disabled:cursor-not-allowed disabled:opacity-60 disabled:hover:border-border disabled:hover:bg-card"
+                    >
+                      <p className="truncate text-sm font-medium text-foreground">{p.name}</p>
+                      <p className="text-sm text-primary">{formatMoney(Number(p.sale_price))}</p>
+                      {empty ? (
+                        <p className="text-xs font-semibold text-destructive">Stock VIDE</p>
+                      ) : (
+                        <p className="text-xs text-muted-foreground">
+                          Stock : {Number(p.stock_qty)}
+                        </p>
+                      )}
+                    </button>
+                  );
+                })}
               </div>
             )}
           </CardContent>
