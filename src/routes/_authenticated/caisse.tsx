@@ -141,9 +141,18 @@ function CashierPage() {
   const change = paidNum - total;
 
   function addLine(p: Product) {
+    const stock = Number(p.stock_qty);
+    if (stock < 1) {
+      toast.error(`Stock VIDE — « ${p.name} » ne peut pas être vendu`);
+      return;
+    }
     setLines((prev) => {
       const found = prev.find((l) => l.product.id === p.id);
       if (found) {
+        if (found.qty + 1 > stock) {
+          toast.error(`Stock insuffisant : ${stock} en stock`);
+          return prev;
+        }
         return prev.map((l) => (l.product.id === p.id ? { ...l, qty: l.qty + 1 } : l));
       }
       return [...prev, { product: p, qty: 1 }];
@@ -152,7 +161,16 @@ function CashierPage() {
 
   function setQty(id: string, qty: number) {
     setLines((prev) =>
-      prev.flatMap((l) => (l.product.id === id ? (qty <= 0 ? [] : [{ ...l, qty }]) : [l])),
+      prev.flatMap((l) => {
+        if (l.product.id !== id) return [l];
+        if (qty <= 0) return [];
+        const stock = Number(l.product.stock_qty);
+        if (qty > stock) {
+          toast.error(`Stock insuffisant : ${stock} en stock`);
+          return [{ ...l, qty: stock }];
+        }
+        return [{ ...l, qty }];
+      }),
     );
   }
 
