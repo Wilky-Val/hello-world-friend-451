@@ -69,6 +69,59 @@ function CashierPage() {
   const [paid, setPaid] = useState("");
   const [customer, setCustomer] = useState("");
   const [receipt, setReceipt] = useState<Receipt | null>(null);
+  const [openingAmount, setOpeningAmount] = useState("");
+  const [countedAmount, setCountedAmount] = useState("");
+  const [closeOpen, setCloseOpen] = useState(false);
+
+  const { data: session, isLoading: sessionLoading } = useOpenSession();
+  const { data: sessionSales } = useSessionSales(session?.id);
+
+  const openSession = useMutation({
+    mutationFn: async () => {
+      const { data: userData } = await supabase.auth.getUser();
+      const uid = userData.user?.id;
+      if (!uid) throw new Error("Session expirée");
+      const amount = Number(openingAmount);
+      if (!Number.isFinite(amount) || amount < 0) throw new Error("Montant invalide");
+      const { error } = await supabase
+        .from("cash_sessions")
+        .insert({ user_id: uid, opening_amount: amount });
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      setOpeningAmount("");
+      qc.invalidateQueries({ queryKey: ["cash-session"] });
+      toast.success("Caisse ouverte");
+    },
+    onError: (e) => toast.error(e instanceof Error ? e.message : "Erreur"),
+  });
+
+  const closeSession = useMutation({
+    mutationFn: async () => {
+      if (!session) throw new Error("Aucune caisse ouverte");
+      const counted = countedAmount === "" ? null : Number(countedAmount);
+      if (counted !== null && !Number.isFinite(counted)) throw new Error("Montant invalide");
+      const expected = Number(session.opening_amount) + (sessionSales?.total ?? 0);
+      const { error } = await supabase
+        .from("cash_sessions")
+        .update({
+          closed_at: new Date().toISOString(),
+          closing_amount: expected,
+          counted_amount: counted,
+        })
+        .eq("id", session.id);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      setCountedAmount("");
+      setCloseOpen(false);
+      setLines([]);
+      qc.invalidateQueries({ queryKey: ["cash-session"] });
+      toast.success("Caisse fermée");
+    },
+    onError: (e) => toast.error(e instanceof Error ? e.message : "Erreur"),
+  });
+
 
   const { data: products = [] } = useQuery({
     queryKey: ["products"],
