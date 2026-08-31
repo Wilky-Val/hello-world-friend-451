@@ -47,6 +47,45 @@ export type Database = {
         }
         Relationships: []
       }
+      cash_sessions: {
+        Row: {
+          closed_at: string | null
+          closing_amount: number | null
+          counted_amount: number | null
+          created_at: string
+          id: string
+          note: string | null
+          opened_at: string
+          opening_amount: number
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          closed_at?: string | null
+          closing_amount?: number | null
+          counted_amount?: number | null
+          created_at?: string
+          id?: string
+          note?: string | null
+          opened_at?: string
+          opening_amount?: number
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          closed_at?: string | null
+          closing_amount?: number | null
+          counted_amount?: number | null
+          created_at?: string
+          id?: string
+          note?: string | null
+          opened_at?: string
+          opening_amount?: number
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       expenses: {
         Row: {
           amount: number
@@ -172,6 +211,7 @@ export type Database = {
           customer: string | null
           id: string
           paid: number
+          session_id: string | null
           ticket_no: number
           total: number
           user_id: string
@@ -183,6 +223,7 @@ export type Database = {
           customer?: string | null
           id?: string
           paid?: number
+          session_id?: string | null
           ticket_no?: number
           total?: number
           user_id: string
@@ -194,11 +235,20 @@ export type Database = {
           customer?: string | null
           id?: string
           paid?: number
+          session_id?: string | null
           ticket_no?: number
           total?: number
           user_id?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "sales_session_id_fkey"
+            columns: ["session_id"]
+            isOneToOne: false
+            referencedRelation: "cash_sessions"
+            referencedColumns: ["id"]
+          },
+        ]
       }
     }
     Views: {
