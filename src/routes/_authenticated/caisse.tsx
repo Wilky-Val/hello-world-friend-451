@@ -252,8 +252,69 @@ function CashierPage() {
     `${p.name} ${p.sku ?? ""}`.toLowerCase().includes(search.toLowerCase()),
   );
 
+  if (!sessionLoading && !session) {
+    return (
+      <AppShell title="Ouverture de caisse" subtitle="Indiquez le fond de caisse pour commencer">
+        <Card className="mx-auto max-w-md">
+          <CardHeader>
+            <CardTitle className="text-base">Fond de caisse</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="space-y-2">
+              <Label htmlFor="opening">Montant d'ouverture</Label>
+              <Input
+                id="opening"
+                type="number"
+                min="0"
+                placeholder="0.00"
+                value={openingAmount}
+                onChange={(e) => setOpeningAmount(e.target.value)}
+              />
+            </div>
+            <Button
+              className="w-full"
+              disabled={openingAmount === "" || openSession.isPending}
+              onClick={() => openSession.mutate()}
+            >
+              <LockOpen className="size-4" /> Ouvrir la caisse
+            </Button>
+          </CardContent>
+        </Card>
+      </AppShell>
+    );
+  }
+
+  const expectedCash = Number(session?.opening_amount ?? 0) + (sessionSales?.total ?? 0);
+
   return (
     <AppShell title="Caisse" subtitle="Sélectionnez les produits, encaissez et imprimez la fiche">
+      {session ? (
+        <Card className="no-print mb-6">
+          <CardContent className="flex flex-wrap items-center gap-4 py-4 text-sm">
+            <div>
+              <p className="text-muted-foreground">Fond d'ouverture</p>
+              <p className="font-medium text-foreground">
+                {formatMoney(Number(session.opening_amount))}
+              </p>
+            </div>
+            <div>
+              <p className="text-muted-foreground">Ventes ({sessionSales?.count ?? 0})</p>
+              <p className="font-medium text-foreground">{formatMoney(sessionSales?.total ?? 0)}</p>
+            </div>
+            <div>
+              <p className="text-muted-foreground">Attendu en caisse</p>
+              <p className="font-semibold text-primary">{formatMoney(expectedCash)}</p>
+            </div>
+            <div className="ml-auto text-xs text-muted-foreground">
+              Ouverte le {formatDate(session.opened_at)}
+            </div>
+            <Button variant="outline" size="sm" onClick={() => setCloseOpen(true)}>
+              <Lock className="size-4" /> Fermer la caisse
+            </Button>
+          </CardContent>
+        </Card>
+      ) : null}
+
       <div className="grid gap-6 lg:grid-cols-[1fr_380px]">
         <Card className="no-print">
           <CardHeader>
