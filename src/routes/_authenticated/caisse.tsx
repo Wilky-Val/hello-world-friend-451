@@ -242,6 +242,7 @@ function CashierPage() {
       setCustomer("");
       qc.invalidateQueries({ queryKey: ["products"] });
       qc.invalidateQueries({ queryKey: ["sales"] });
+      qc.invalidateQueries({ queryKey: ["cash-session"] });
       toast.success(`Vente #${r.ticket_no} enregistrée`);
     },
     onError: (e) => toast.error(e instanceof Error ? e.message : "Erreur"),
