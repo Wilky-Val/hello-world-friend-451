@@ -194,6 +194,7 @@ function CashierPage() {
           paid: paidNum,
           change_due: change > 0 ? change : 0,
           customer: customer.trim() || null,
+          session_id: session.id,
         })
         .select("*")
         .single();
