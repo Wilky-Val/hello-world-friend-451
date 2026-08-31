@@ -180,6 +180,10 @@ function CashierPage() {
       const uid = userData.user?.id;
       if (!uid) throw new Error("Session expirée");
       if (lines.length === 0) throw new Error("Le panier est vide");
+      if (!session) throw new Error("Ouvrez la caisse avant d'encaisser");
+      const vide = lines.find((l) => Number(l.product.stock_qty) < 1);
+      if (vide) throw new Error(`Stock VIDE : ${vide.product.name}`);
+
 
       const { data: sale, error: saleError } = await supabase
         .from("sales")
