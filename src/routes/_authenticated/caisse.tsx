@@ -337,15 +337,15 @@ function CashierPage() {
               <div className="my-2 border-t border-dashed border-border" />
 
               {receipt.lines.map((l, i) => (
-                <div key={i} className="flex justify-between">
-                  <span>
+                <div key={i} className="flex justify-between gap-1">
+                  <span className="min-w-0 break-words">
                     {l.qty} × {l.name}
                   </span>
-                  <span>{formatMoney(l.qty * l.unit_price)}</span>
+                  <span className="shrink-0">{formatMoney(l.qty * l.unit_price)}</span>
                 </div>
               ))}
-              <div className="my-3 border-t border-dashed border-border" />
-              <div className="flex justify-between font-semibold">
+              <div className="my-2 border-t border-dashed border-border" />
+              <div className="flex justify-between font-bold">
                 <span>TOTAL</span>
                 <span>{formatMoney(receipt.total)}</span>
               </div>
@@ -357,7 +357,8 @@ function CashierPage() {
                 <span>Monnaie</span>
                 <span>{formatMoney(receipt.change_due)}</span>
               </div>
-              <p className="mt-4 text-center text-xs">Merci de votre achat !</p>
+              <p className="mt-3 text-center text-[10px]">Merci de votre achat !</p>
+
             </div>
           ) : null}
           <DialogFooter className="no-print">
