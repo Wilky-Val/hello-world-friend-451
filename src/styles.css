@@ -157,6 +157,17 @@
 }
 
 @media print {
+  @page {
+    size: 58mm auto;
+    margin: 0;
+  }
+
+  html,
+  body {
+    width: 58mm;
+    background: white;
+  }
+
   body * {
     visibility: hidden;
   }
@@ -167,14 +178,27 @@
   }
 
   .print-area {
-    position: fixed;
-    inset: 0;
-    padding: 16px;
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 58mm;
+    max-width: 58mm;
+    padding: 2mm 3mm;
     background: white;
     color: black;
+    font-family: "Courier New", ui-monospace, monospace;
+    font-size: 11px;
+    line-height: 1.25;
+  }
+
+  .print-area img {
+    max-width: 40mm;
+    max-height: 18mm;
+    filter: grayscale(100%) contrast(140%);
   }
 
   .no-print {
     display: none !important;
   }
 }
+
