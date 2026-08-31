@@ -59,7 +59,9 @@ type Receipt = {
 
 function CashierPage() {
   const qc = useQueryClient();
+  const { data: business } = useBusiness();
   const [search, setSearch] = useState("");
+
   const [lines, setLines] = useState<CartLine[]>([]);
   const [paid, setPaid] = useState("");
   const [customer, setCustomer] = useState("");
