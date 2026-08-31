@@ -1,6 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { Minus, Plus, Printer, Trash2 } from "lucide-react";
+import { Lock, LockOpen, Minus, Plus, Printer, Trash2 } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
 
@@ -18,6 +18,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { supabase } from "@/integrations/supabase/client";
 import { useBusiness } from "@/lib/business";
+import { useOpenSession, useSessionSales } from "@/lib/cash-session";
 
 import {
   cartCost,
@@ -68,6 +69,59 @@ function CashierPage() {
   const [paid, setPaid] = useState("");
   const [customer, setCustomer] = useState("");
   const [receipt, setReceipt] = useState<Receipt | null>(null);
+  const [openingAmount, setOpeningAmount] = useState("");
+  const [countedAmount, setCountedAmount] = useState("");
+  const [closeOpen, setCloseOpen] = useState(false);
+
+  const { data: session, isLoading: sessionLoading } = useOpenSession();
+  const { data: sessionSales } = useSessionSales(session?.id);
+
+  const openSession = useMutation({
+    mutationFn: async () => {
+      const { data: userData } = await supabase.auth.getUser();
+      const uid = userData.user?.id;
+      if (!uid) throw new Error("Session expirée");
+      const amount = Number(openingAmount);
+      if (!Number.isFinite(amount) || amount < 0) throw new Error("Montant invalide");
+      const { error } = await supabase
+        .from("cash_sessions")
+        .insert({ user_id: uid, opening_amount: amount });
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      setOpeningAmount("");
+      qc.invalidateQueries({ queryKey: ["cash-session"] });
+      toast.success("Caisse ouverte");
+    },
+    onError: (e) => toast.error(e instanceof Error ? e.message : "Erreur"),
+  });
+
+  const closeSession = useMutation({
+    mutationFn: async () => {
+      if (!session) throw new Error("Aucune caisse ouverte");
+      const counted = countedAmount === "" ? null : Number(countedAmount);
+      if (counted !== null && !Number.isFinite(counted)) throw new Error("Montant invalide");
+      const expected = Number(session.opening_amount) + (sessionSales?.total ?? 0);
+      const { error } = await supabase
+        .from("cash_sessions")
+        .update({
+          closed_at: new Date().toISOString(),
+          closing_amount: expected,
+          counted_amount: counted,
+        })
+        .eq("id", session.id);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      setCountedAmount("");
+      setCloseOpen(false);
+      setLines([]);
+      qc.invalidateQueries({ queryKey: ["cash-session"] });
+      toast.success("Caisse fermée");
+    },
+    onError: (e) => toast.error(e instanceof Error ? e.message : "Erreur"),
+  });
+
 
   const { data: products = [] } = useQuery({
     queryKey: ["products"],
@@ -87,9 +141,18 @@ function CashierPage() {
   const change = paidNum - total;
 
   function addLine(p: Product) {
+    const stock = Number(p.stock_qty);
+    if (stock < 1) {
+      toast.error(`Stock VIDE — « ${p.name} » ne peut pas être vendu`);
+      return;
+    }
     setLines((prev) => {
       const found = prev.find((l) => l.product.id === p.id);
       if (found) {
+        if (found.qty + 1 > stock) {
+          toast.error(`Stock insuffisant : ${stock} en stock`);
+          return prev;
+        }
         return prev.map((l) => (l.product.id === p.id ? { ...l, qty: l.qty + 1 } : l));
       }
       return [...prev, { product: p, qty: 1 }];
@@ -98,7 +161,16 @@ function CashierPage() {
 
   function setQty(id: string, qty: number) {
     setLines((prev) =>
-      prev.flatMap((l) => (l.product.id === id ? (qty <= 0 ? [] : [{ ...l, qty }]) : [l])),
+      prev.flatMap((l) => {
+        if (l.product.id !== id) return [l];
+        if (qty <= 0) return [];
+        const stock = Number(l.product.stock_qty);
+        if (qty > stock) {
+          toast.error(`Stock insuffisant : ${stock} en stock`);
+          return [{ ...l, qty: stock }];
+        }
+        return [{ ...l, qty }];
+      }),
     );
   }
 
@@ -108,6 +180,10 @@ function CashierPage() {
       const uid = userData.user?.id;
       if (!uid) throw new Error("Session expirée");
       if (lines.length === 0) throw new Error("Le panier est vide");
+      if (!session) throw new Error("Ouvrez la caisse avant d'encaisser");
+      const vide = lines.find((l) => Number(l.product.stock_qty) < 1);
+      if (vide) throw new Error(`Stock VIDE : ${vide.product.name}`);
+
 
       const { data: sale, error: saleError } = await supabase
         .from("sales")
@@ -118,6 +194,7 @@ function CashierPage() {
           paid: paidNum,
           change_due: change > 0 ? change : 0,
           customer: customer.trim() || null,
+          session_id: session.id,
         })
         .select("*")
         .single();
@@ -165,6 +242,7 @@ function CashierPage() {
       setCustomer("");
       qc.invalidateQueries({ queryKey: ["products"] });
       qc.invalidateQueries({ queryKey: ["sales"] });
+      qc.invalidateQueries({ queryKey: ["cash-session"] });
       toast.success(`Vente #${r.ticket_no} enregistrée`);
     },
     onError: (e) => toast.error(e instanceof Error ? e.message : "Erreur"),
@@ -174,8 +252,69 @@ function CashierPage() {
     `${p.name} ${p.sku ?? ""}`.toLowerCase().includes(search.toLowerCase()),
   );
 
+  if (!sessionLoading && !session) {
+    return (
+      <AppShell title="Ouverture de caisse" subtitle="Indiquez le fond de caisse pour commencer">
+        <Card className="mx-auto max-w-md">
+          <CardHeader>
+            <CardTitle className="text-base">Fond de caisse</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="space-y-2">
+              <Label htmlFor="opening">Montant d'ouverture</Label>
+              <Input
+                id="opening"
+                type="number"
+                min="0"
+                placeholder="0.00"
+                value={openingAmount}
+                onChange={(e) => setOpeningAmount(e.target.value)}
+              />
+            </div>
+            <Button
+              className="w-full"
+              disabled={openingAmount === "" || openSession.isPending}
+              onClick={() => openSession.mutate()}
+            >
+              <LockOpen className="size-4" /> Ouvrir la caisse
+            </Button>
+          </CardContent>
+        </Card>
+      </AppShell>
+    );
+  }
+
+  const expectedCash = Number(session?.opening_amount ?? 0) + (sessionSales?.total ?? 0);
+
   return (
     <AppShell title="Caisse" subtitle="Sélectionnez les produits, encaissez et imprimez la fiche">
+      {session ? (
+        <Card className="no-print mb-6">
+          <CardContent className="flex flex-wrap items-center gap-4 py-4 text-sm">
+            <div>
+              <p className="text-muted-foreground">Fond d'ouverture</p>
+              <p className="font-medium text-foreground">
+                {formatMoney(Number(session.opening_amount))}
+              </p>
+            </div>
+            <div>
+              <p className="text-muted-foreground">Ventes ({sessionSales?.count ?? 0})</p>
+              <p className="font-medium text-foreground">{formatMoney(sessionSales?.total ?? 0)}</p>
+            </div>
+            <div>
+              <p className="text-muted-foreground">Attendu en caisse</p>
+              <p className="font-semibold text-primary">{formatMoney(expectedCash)}</p>
+            </div>
+            <div className="ml-auto text-xs text-muted-foreground">
+              Ouverte le {formatDate(session.opened_at)}
+            </div>
+            <Button variant="outline" size="sm" onClick={() => setCloseOpen(true)}>
+              <Lock className="size-4" /> Fermer la caisse
+            </Button>
+          </CardContent>
+        </Card>
+      ) : null}
+
       <div className="grid gap-6 lg:grid-cols-[1fr_380px]">
         <Card className="no-print">
           <CardHeader>
@@ -193,20 +332,28 @@ function CashierPage() {
               </p>
             ) : (
               <div className="grid gap-2 sm:grid-cols-2 xl:grid-cols-3">
-                {filtered.map((p) => (
-                  <button
-                    key={p.id}
-                    type="button"
-                    onClick={() => addLine(p)}
-                    className="rounded-lg border border-border bg-card p-3 text-left transition-colors hover:border-primary hover:bg-primary/5"
-                  >
-                    <p className="truncate text-sm font-medium text-foreground">{p.name}</p>
-                    <p className="text-sm text-primary">{formatMoney(Number(p.sale_price))}</p>
-                    <p className="text-xs text-muted-foreground">
-                      Stock : {Number(p.stock_qty)}
-                    </p>
-                  </button>
-                ))}
+                {filtered.map((p) => {
+                  const empty = Number(p.stock_qty) < 1;
+                  return (
+                    <button
+                      key={p.id}
+                      type="button"
+                      disabled={empty}
+                      onClick={() => addLine(p)}
+                      className="rounded-lg border border-border bg-card p-3 text-left transition-colors hover:border-primary hover:bg-primary/5 disabled:cursor-not-allowed disabled:opacity-60 disabled:hover:border-border disabled:hover:bg-card"
+                    >
+                      <p className="truncate text-sm font-medium text-foreground">{p.name}</p>
+                      <p className="text-sm text-primary">{formatMoney(Number(p.sale_price))}</p>
+                      {empty ? (
+                        <p className="text-xs font-semibold text-destructive">Stock VIDE</p>
+                      ) : (
+                        <p className="text-xs text-muted-foreground">
+                          Stock : {Number(p.stock_qty)}
+                        </p>
+                      )}
+                    </button>
+                  );
+                })}
               </div>
             )}
           </CardContent>
