@@ -446,6 +446,59 @@ function CashierPage() {
         </Card>
       </div>
 
+      <Dialog open={closeOpen} onOpenChange={setCloseOpen}>
+        <DialogContent className="no-print">
+          <DialogHeader>
+            <DialogTitle>Fermeture de caisse</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-3 text-sm">
+            <div className="flex justify-between">
+              <span className="text-muted-foreground">Fond d'ouverture</span>
+              <span>{formatMoney(Number(session?.opening_amount ?? 0))}</span>
+            </div>
+            <div className="flex justify-between">
+              <span className="text-muted-foreground">Ventes encaissées</span>
+              <span>{formatMoney(sessionSales?.total ?? 0)}</span>
+            </div>
+            <div className="flex justify-between font-semibold">
+              <span>Attendu en caisse</span>
+              <span>{formatMoney(expectedCash)}</span>
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="counted">Montant compté (optionnel)</Label>
+              <Input
+                id="counted"
+                type="number"
+                value={countedAmount}
+                onChange={(e) => setCountedAmount(e.target.value)}
+              />
+            </div>
+            {countedAmount !== "" ? (
+              <div className="flex justify-between">
+                <span className="text-muted-foreground">Écart</span>
+                <span
+                  className={
+                    Number(countedAmount) - expectedCash < 0
+                      ? "font-medium text-destructive"
+                      : "font-medium text-foreground"
+                  }
+                >
+                  {formatMoney(Number(countedAmount) - expectedCash)}
+                </span>
+              </div>
+            ) : null}
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setCloseOpen(false)}>
+              Annuler
+            </Button>
+            <Button disabled={closeSession.isPending} onClick={() => closeSession.mutate()}>
+              <Lock className="size-4" /> Fermer la caisse
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
       <Dialog open={receipt !== null} onOpenChange={(o) => !o && setReceipt(null)}>
         <DialogContent>
           <DialogHeader>
