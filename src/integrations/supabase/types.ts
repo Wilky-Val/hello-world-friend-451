@@ -21,6 +21,7 @@ export type Database = {
           id: string
           logo_url: string | null
           name: string
+          owner_id: string
           phone: string | null
           updated_at: string
           user_id: string
@@ -31,6 +32,7 @@ export type Database = {
           id?: string
           logo_url?: string | null
           name?: string
+          owner_id?: string
           phone?: string | null
           updated_at?: string
           user_id: string
@@ -41,6 +43,7 @@ export type Database = {
           id?: string
           logo_url?: string | null
           name?: string
+          owner_id?: string
           phone?: string | null
           updated_at?: string
           user_id?: string
@@ -57,6 +60,7 @@ export type Database = {
           note: string | null
           opened_at: string
           opening_amount: number
+          owner_id: string
           updated_at: string
           user_id: string
         }
@@ -69,6 +73,7 @@ export type Database = {
           note?: string | null
           opened_at?: string
           opening_amount?: number
+          owner_id?: string
           updated_at?: string
           user_id: string
         }
@@ -81,6 +86,7 @@ export type Database = {
           note?: string | null
           opened_at?: string
           opening_amount?: number
+          owner_id?: string
           updated_at?: string
           user_id?: string
         }
@@ -93,6 +99,7 @@ export type Database = {
           created_at: string
           id: string
           label: string
+          owner_id: string
           spent_at: string
           user_id: string
         }
@@ -102,6 +109,7 @@ export type Database = {
           created_at?: string
           id?: string
           label: string
+          owner_id?: string
           spent_at?: string
           user_id: string
         }
@@ -111,7 +119,38 @@ export type Database = {
           created_at?: string
           id?: string
           label?: string
+          owner_id?: string
           spent_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      org_members: {
+        Row: {
+          created_at: string
+          display_name: string | null
+          id: string
+          owner_id: string
+          role: Database["public"]["Enums"]["app_role"]
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          display_name?: string | null
+          id?: string
+          owner_id: string
+          role: Database["public"]["Enums"]["app_role"]
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          display_name?: string | null
+          id?: string
+          owner_id?: string
+          role?: Database["public"]["Enums"]["app_role"]
+          updated_at?: string
           user_id?: string
         }
         Relationships: []
@@ -122,6 +161,7 @@ export type Database = {
           created_at: string
           id: string
           name: string
+          owner_id: string
           sale_price: number
           sku: string | null
           stock_qty: number
@@ -133,6 +173,7 @@ export type Database = {
           created_at?: string
           id?: string
           name: string
+          owner_id?: string
           sale_price?: number
           sku?: string | null
           stock_qty?: number
@@ -144,6 +185,7 @@ export type Database = {
           created_at?: string
           id?: string
           name?: string
+          owner_id?: string
           sale_price?: number
           sku?: string | null
           stock_qty?: number
@@ -156,6 +198,7 @@ export type Database = {
         Row: {
           created_at: string
           id: string
+          owner_id: string
           product_id: string | null
           product_name: string
           qty: number
@@ -167,6 +210,7 @@ export type Database = {
         Insert: {
           created_at?: string
           id?: string
+          owner_id?: string
           product_id?: string | null
           product_name: string
           qty?: number
@@ -178,6 +222,7 @@ export type Database = {
         Update: {
           created_at?: string
           id?: string
+          owner_id?: string
           product_id?: string | null
           product_name?: string
           qty?: number
@@ -210,6 +255,7 @@ export type Database = {
           created_at: string
           customer: string | null
           id: string
+          owner_id: string
           paid: number
           session_id: string | null
           ticket_no: number
@@ -222,6 +268,7 @@ export type Database = {
           created_at?: string
           customer?: string | null
           id?: string
+          owner_id?: string
           paid?: number
           session_id?: string | null
           ticket_no?: number
@@ -234,6 +281,7 @@ export type Database = {
           created_at?: string
           customer?: string | null
           id?: string
+          owner_id?: string
           paid?: number
           session_id?: string | null
           ticket_no?: number
@@ -255,10 +303,14 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      current_org: { Args: never; Returns: string }
+      has_role: {
+        Args: { _role: Database["public"]["Enums"]["app_role"] }
+        Returns: boolean
+      }
     }
     Enums: {
-      [_ in never]: never
+      app_role: "admin" | "caisse" | "comptabilite"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -385,6 +437,8 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {},
+    Enums: {
+      app_role: ["admin", "caisse", "comptabilite"],
+    },
   },
 } as const
