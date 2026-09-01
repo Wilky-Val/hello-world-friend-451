@@ -15,6 +15,7 @@ import { Route as AuthRouteImport } from './routes/auth'
 import { Route as AuthenticatedCaisseRouteImport } from './routes/_authenticated/caisse'
 import { Route as AuthenticatedComptabiliteRouteImport } from './routes/_authenticated/comptabilite'
 import { Route as AuthenticatedEntrepriseRouteImport } from './routes/_authenticated/entreprise'
+import { Route as AuthenticatedEquipeRouteImport } from './routes/_authenticated/equipe'
 import { Route as AuthenticatedStockRouteImport } from './routes/_authenticated/stock'
 
 const IndexRoute = IndexRouteImport.update({
@@ -47,6 +48,11 @@ const AuthenticatedEntrepriseRoute = AuthenticatedEntrepriseRouteImport.update({
   path: '/entreprise',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const AuthenticatedEquipeRoute = AuthenticatedEquipeRouteImport.update({
+  id: '/equipe',
+  path: '/equipe',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
 const AuthenticatedStockRoute = AuthenticatedStockRouteImport.update({
   id: '/stock',
   path: '/stock',
@@ -59,6 +65,7 @@ export interface FileRoutesByFullPath {
   '/caisse': typeof AuthenticatedCaisseRoute
   '/comptabilite': typeof AuthenticatedComptabiliteRoute
   '/entreprise': typeof AuthenticatedEntrepriseRoute
+  '/equipe': typeof AuthenticatedEquipeRoute
   '/stock': typeof AuthenticatedStockRoute
 }
 export interface FileRoutesByTo {
@@ -67,6 +74,7 @@ export interface FileRoutesByTo {
   '/caisse': typeof AuthenticatedCaisseRoute
   '/comptabilite': typeof AuthenticatedComptabiliteRoute
   '/entreprise': typeof AuthenticatedEntrepriseRoute
+  '/equipe': typeof AuthenticatedEquipeRoute
   '/stock': typeof AuthenticatedStockRoute
 }
 export interface FileRoutesById {
@@ -77,14 +85,28 @@ export interface FileRoutesById {
   '/_authenticated/caisse': typeof AuthenticatedCaisseRoute
   '/_authenticated/comptabilite': typeof AuthenticatedComptabiliteRoute
   '/_authenticated/entreprise': typeof AuthenticatedEntrepriseRoute
+  '/_authenticated/equipe': typeof AuthenticatedEquipeRoute
   '/_authenticated/stock': typeof AuthenticatedStockRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
-    '/' | '/auth' | '/caisse' | '/comptabilite' | '/entreprise' | '/stock'
+    | '/'
+    | '/auth'
+    | '/caisse'
+    | '/comptabilite'
+    | '/entreprise'
+    | '/equipe'
+    | '/stock'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/auth' | '/caisse' | '/comptabilite' | '/entreprise' | '/stock'
+  to:
+    | '/'
+    | '/auth'
+    | '/caisse'
+    | '/comptabilite'
+    | '/entreprise'
+    | '/equipe'
+    | '/stock'
   id:
     | '__root__'
     | '/'
@@ -93,6 +115,7 @@ export interface FileRouteTypes {
     | '/_authenticated/caisse'
     | '/_authenticated/comptabilite'
     | '/_authenticated/entreprise'
+    | '/_authenticated/equipe'
     | '/_authenticated/stock'
   fileRoutesById: FileRoutesById
 }
@@ -146,6 +169,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedEntrepriseRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/equipe': {
+      id: '/_authenticated/equipe'
+      path: '/equipe'
+      fullPath: '/equipe'
+      preLoaderRoute: typeof AuthenticatedEquipeRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/stock': {
       id: '/_authenticated/stock'
       path: '/stock'
@@ -160,6 +190,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedCaisseRoute: typeof AuthenticatedCaisseRoute
   AuthenticatedComptabiliteRoute: typeof AuthenticatedComptabiliteRoute
   AuthenticatedEntrepriseRoute: typeof AuthenticatedEntrepriseRoute
+  AuthenticatedEquipeRoute: typeof AuthenticatedEquipeRoute
   AuthenticatedStockRoute: typeof AuthenticatedStockRoute
 }
 
@@ -167,6 +198,7 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedCaisseRoute: AuthenticatedCaisseRoute,
   AuthenticatedComptabiliteRoute: AuthenticatedComptabiliteRoute,
   AuthenticatedEntrepriseRoute: AuthenticatedEntrepriseRoute,
+  AuthenticatedEquipeRoute: AuthenticatedEquipeRoute,
   AuthenticatedStockRoute: AuthenticatedStockRoute,
 }
 
