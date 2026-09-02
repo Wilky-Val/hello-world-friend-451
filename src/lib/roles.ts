@@ -27,14 +27,25 @@ export type Membership = {
 export async function fetchMembership(): Promise<Membership | null> {
   const { data: auth } = await supabase.auth.getUser();
   if (!auth.user) return null;
+  const select = "id, user_id, owner_id, role, display_name";
   const { data, error } = await supabase
     .from("org_members")
-    .select("id, user_id, owner_id, role, display_name")
+    .select(select)
     .eq("user_id", auth.user.id)
     .maybeSingle();
   if (error) throw error;
-  return (data as Membership | null) ?? null;
+  if (data) return data as Membership;
+
+  // First sign-in of a self-registered account: becomes admin of its own shop.
+  const { data: created, error: createError } = await supabase
+    .from("org_members")
+    .insert({ user_id: auth.user.id, owner_id: auth.user.id, role: "admin" })
+    .select(select)
+    .maybeSingle();
+  if (createError) throw createError;
+  return (created as Membership | null) ?? null;
 }
+
 
 export function useMembership() {
   return useQuery({
