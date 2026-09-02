@@ -102,7 +102,7 @@ function BusinessPage() {
   }
 
   return (
-    <AppShell title="Mon entreprise" subtitle="Ces informations apparaissent sur vos tickets">
+    <AppShell title="Mon entreprise" subtitle="Ces informations apparaissent sur vos tickets" allow={["admin"]}>
       <div className="grid gap-6 lg:grid-cols-[1fr_320px]">
         <Card>
           <CardHeader>

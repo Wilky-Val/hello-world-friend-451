@@ -7,6 +7,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { supabase } from "@/integrations/supabase/client";
+import { ROLE_HOME, fetchMembership } from "@/lib/roles";
 
 export const Route = createFileRoute("/auth")({
   head: () => ({
@@ -33,10 +34,16 @@ function AuthPage() {
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
 
+  const goHome = async () => {
+    const membership = await fetchMembership();
+    navigate({ to: membership ? ROLE_HOME[membership.role] : "/caisse" });
+  };
+
   useEffect(() => {
     supabase.auth.getSession().then(({ data }) => {
-      if (data.session) navigate({ to: "/caisse" });
+      if (data.session) void goHome();
     });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [navigate]);
 
   async function onSubmit(e: React.FormEvent) {
@@ -55,8 +62,9 @@ function AuthPage() {
       } else {
         const { error } = await supabase.auth.signInWithPassword({ email, password });
         if (error) throw error;
-        navigate({ to: "/caisse" });
+        await goHome();
       }
+
     } catch (err) {
       toast.error(err instanceof Error ? err.message : "Erreur de connexion");
     } finally {

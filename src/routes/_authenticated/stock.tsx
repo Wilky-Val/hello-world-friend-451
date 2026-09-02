@@ -114,7 +114,7 @@ function StockPage() {
   const stockValue = products.reduce((s, p) => s + Number(p.stock_qty) * Number(p.cost_price), 0);
 
   return (
-    <AppShell title="Gestion de stock" subtitle="Produits, quantités et prix">
+    <AppShell title="Gestion de stock" subtitle="Produits, quantités et prix" allow={["admin"]}>
       <div className="mb-4 flex flex-wrap items-center gap-3">
         <Input
           placeholder="Rechercher un produit..."

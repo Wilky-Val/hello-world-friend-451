@@ -108,7 +108,7 @@ function AccountingPage() {
   ];
 
   return (
-    <AppShell title="Comptabilité" subtitle="Dépenses, coût d'achat et bénéfice">
+    <AppShell title="Comptabilité" subtitle="Dépenses, coût d'achat et bénéfice" allow={["admin", "comptabilite"]}>
       <div className="mb-6 grid gap-3 sm:grid-cols-2 lg:grid-cols-5">
         {stats.map((s) => (
           <Card key={s.label} className={s.highlight ? "border-primary/40 bg-primary/5" : undefined}>
