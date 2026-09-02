@@ -254,7 +254,7 @@ function CashierPage() {
 
   if (!sessionLoading && !session) {
     return (
-      <AppShell title="Ouverture de caisse" subtitle="Indiquez le fond de caisse pour commencer">
+      <AppShell title="Ouverture de caisse" subtitle="Indiquez le fond de caisse pour commencer" allow={["admin", "caisse"]}>
         <Card className="mx-auto max-w-md">
           <CardHeader>
             <CardTitle className="text-base">Fond de caisse</CardTitle>
@@ -287,7 +287,7 @@ function CashierPage() {
   const expectedCash = Number(session?.opening_amount ?? 0) + (sessionSales?.total ?? 0);
 
   return (
-    <AppShell title="Caisse" subtitle="Sélectionnez les produits, encaissez et imprimez la fiche">
+    <AppShell title="Caisse" subtitle="Sélectionnez les produits, encaissez et imprimez la fiche" allow={["admin", "caisse"]}>
       {session ? (
         <Card className="no-print mb-6">
           <CardContent className="flex flex-wrap items-center gap-4 py-4 text-sm">
