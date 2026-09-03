@@ -1,5 +1,5 @@
 import { Link, useNavigate } from "@tanstack/react-router";
-import { Building2, LogOut, Package, Receipt, Users, Wallet } from "lucide-react";
+import { Building2, FileText, LogOut, Package, Receipt, Users, Wallet } from "lucide-react";
 import type { ReactNode } from "react";
 
 import { RoleGate } from "@/components/RoleGate";
@@ -11,6 +11,7 @@ const NAV = [
   { to: "/caisse", label: "Caisse", icon: Receipt },
   { to: "/stock", label: "Stock", icon: Package },
   { to: "/comptabilite", label: "Comptabilité", icon: Wallet },
+  { to: "/rapport", label: "Rapport", icon: FileText },
   { to: "/entreprise", label: "Entreprise", icon: Building2 },
   { to: "/equipe", label: "Comptes", icon: Users },
 ] as const;
