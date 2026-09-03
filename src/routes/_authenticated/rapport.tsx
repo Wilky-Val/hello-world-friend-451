@@ -11,21 +11,21 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { supabase } from "@/integrations/supabase/client";
 import { useBusiness } from "@/lib/business";
-import { formatDate, formatMoney, type Sale, type SaleItem } from "@/lib/pos";
+import { CURRENCY, formatDate, formatMoney, type Sale, type SaleItem } from "@/lib/pos";
 
 export const Route = createFileRoute("/_authenticated/rapport")({
   head: () => ({
     meta: [
-      { title: "Rapport du jour — Ventes et articles vendus — MiniPOS" },
+      { title: "Rapport de caisse — Ventes par période — MiniPOS" },
       {
         name: "description",
         content:
-          "Générez un rapport PDF des ventes du jour avec le numéro de chaque fiche et le détail des articles vendus.",
+          "Générez un rapport PDF des ventes sur la période de votre choix, avec le numéro de chaque fiche et le détail des articles vendus.",
       },
-      { property: "og:title", content: "Rapport du jour — MiniPOS" },
+      { property: "og:title", content: "Rapport de caisse — MiniPOS" },
       {
         property: "og:description",
-        content: "Rapport PDF des ventes du jour, fiche par fiche, avec les articles vendus.",
+        content: "Rapport PDF des ventes d'une période, fiche par fiche, avec les articles vendus.",
       },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
@@ -40,18 +40,38 @@ function todayISO() {
   return new Date(d.getTime() - off * 60_000).toISOString().slice(0, 10);
 }
 
+function firstOfMonthISO() {
+  const d = new Date();
+  const off = d.getTimezoneOffset();
+  const f = new Date(d.getFullYear(), d.getMonth(), 1);
+  return new Date(f.getTime() - off * 60_000).toISOString().slice(0, 10);
+}
+
+/** Montant ASCII pur : jsPDF (helvetica) rend mal l'espace insécable de fr-FR. */
+function pdfMoney(value: number): string {
+  const n = Number.isFinite(value) ? value : 0;
+  const [int, dec] = Math.abs(n).toFixed(2).split(".");
+  const grouped = int.replace(/\B(?=(\d{3})+(?!\d))/g, " ");
+  return `${n < 0 ? "-" : ""}${grouped}.${dec} ${CURRENCY}`;
+}
+
+function frDate(iso: string) {
+  return new Date(`${iso}T00:00:00`).toLocaleDateString("fr-FR");
+}
+
 type SaleWithItems = Sale & { items: SaleItem[] };
 
 function ReportPage() {
-  const [day, setDay] = useState(todayISO());
+  const [from, setFrom] = useState(firstOfMonthISO());
+  const [to, setTo] = useState(todayISO());
   const { data: business } = useBusiness();
   const [building, setBuilding] = useState(false);
 
   const { data: sales = [], isLoading } = useQuery({
-    queryKey: ["report-sales", day],
+    queryKey: ["report-sales", from, to],
     queryFn: async (): Promise<SaleWithItems[]> => {
-      const start = new Date(`${day}T00:00:00`);
-      const end = new Date(start.getTime() + 24 * 60 * 60 * 1000);
+      const start = new Date(`${from}T00:00:00`);
+      const end = new Date(new Date(`${to}T00:00:00`).getTime() + 24 * 60 * 60 * 1000);
       const { data: rows, error } = await supabase
         .from("sales")
         .select("*")
@@ -88,7 +108,7 @@ function ReportPage() {
 
   async function generatePdf() {
     if (sales.length === 0) {
-      toast.error("Aucune vente pour cette date");
+      toast.error("Aucune vente pour cette période");
       return;
     }
     setBuilding(true);
@@ -98,6 +118,8 @@ function ReportPage() {
       const pageW = doc.internal.pageSize.getWidth();
       const pageH = doc.internal.pageSize.getHeight();
       const left = 40;
+      const right = pageW - left;
+      const midLeft = left + (right - left) / 2;
       let y = 48;
 
       const shop = business?.profile?.name?.trim() || "MiniPOS";
@@ -108,35 +130,36 @@ function ReportPage() {
       doc.setFont("helvetica", "normal");
       doc.setFontSize(9);
       if (business?.profile?.address) {
-        doc.text(business.profile.address, pageW / 2, y, { align: "center" });
+        doc.text(business.profile.address, pageW / 2, y, { align: "center", maxWidth: right - left });
         y += 12;
       }
       if (business?.profile?.phone) {
         doc.text(`Tel : ${business.profile.phone}`, pageW / 2, y, { align: "center" });
         y += 12;
       }
-      y += 6;
+      y += 8;
       doc.setFont("helvetica", "bold");
       doc.setFontSize(12);
-      doc.text(
-        `Rapport des ventes du ${new Date(`${day}T00:00:00`).toLocaleDateString("fr-FR")}`,
-        pageW / 2,
-        y,
-        { align: "center" },
-      );
-      y += 20;
+      const titre =
+        from === to
+          ? `Rapport de caisse du ${frDate(from)}`
+          : `Rapport de caisse du ${frDate(from)} au ${frDate(to)}`;
+      doc.text(titre, pageW / 2, y, { align: "center" });
+      y += 22;
 
+      // Résumé : deux colonnes bien séparées, une ligne par valeur
       doc.setFont("helvetica", "normal");
       doc.setFontSize(10);
       doc.text(`Nombre de fiches : ${sales.length}`, left, y);
-      doc.text(`Articles vendus : ${articles}`, left + 200, y);
-      y += 14;
-      doc.text(`Total des ventes : ${formatMoney(total)}`, left, y);
-      doc.text(`Bénéfice brut : ${formatMoney(total - cost)}`, left + 200, y);
-      y += 16;
+      doc.text(`Articles vendus : ${articles}`, midLeft, y);
+      y += 15;
+      doc.text(`Total des ventes : ${pdfMoney(total)}`, left, y);
+      y += 15;
+      doc.text(`Benefice brut : ${pdfMoney(total - cost)}`, left, y);
+      y += 12;
       doc.setDrawColor(150);
-      doc.line(left, y, pageW - left, y);
-      y += 18;
+      doc.line(left, y, right, y);
+      y += 20;
 
       const ensure = (needed: number) => {
         if (y + needed > pageH - 50) {
@@ -145,53 +168,56 @@ function ReportPage() {
         }
       };
 
+      const colQty = left + 280;
+      const colPu = left + 380;
+
       for (const s of sales) {
-        ensure(60);
+        ensure(70);
         doc.setFont("helvetica", "bold");
         doc.setFontSize(11);
         doc.text(`Fiche #${s.ticket_no}`, left, y);
-        doc.text(formatMoney(Number(s.total)), pageW - left, y, { align: "right" });
-        y += 13;
+        doc.text(pdfMoney(Number(s.total)), right, y, { align: "right" });
+        y += 14;
         doc.setFont("helvetica", "normal");
         doc.setFontSize(9);
         doc.text(
-          `${formatDate(s.created_at)}${s.customer ? ` — Client : ${s.customer}` : ""}`,
+          `${formatDate(s.created_at)}${s.customer ? ` - Client : ${s.customer}` : ""}`,
           left,
           y,
         );
-        y += 14;
+        y += 15;
 
         doc.setFont("helvetica", "bold");
         doc.text("Article", left + 10, y);
-        doc.text("Qté", left + 250, y, { align: "right" });
-        doc.text("P.U.", left + 340, y, { align: "right" });
-        doc.text("Montant", pageW - left, y, { align: "right" });
-        y += 11;
+        doc.text("Qte", colQty, y, { align: "right" });
+        doc.text("P.U.", colPu, y, { align: "right" });
+        doc.text("Montant", right, y, { align: "right" });
+        y += 12;
         doc.setFont("helvetica", "normal");
 
         for (const it of s.items) {
           ensure(20);
-          const name = doc.splitTextToSize(it.product_name, 220)[0] as string;
+          const name = doc.splitTextToSize(it.product_name, 240)[0] as string;
           doc.text(name, left + 10, y);
-          doc.text(String(Number(it.qty)), left + 250, y, { align: "right" });
-          doc.text(formatMoney(Number(it.unit_price)), left + 340, y, { align: "right" });
-          doc.text(formatMoney(Number(it.qty) * Number(it.unit_price)), pageW - left, y, {
+          doc.text(String(Number(it.qty)), colQty, y, { align: "right" });
+          doc.text(pdfMoney(Number(it.unit_price)), colPu, y, { align: "right" });
+          doc.text(pdfMoney(Number(it.qty) * Number(it.unit_price)), right, y, {
             align: "right",
           });
-          y += 12;
+          y += 13;
         }
-        y += 4;
+        y += 6;
         doc.setDrawColor(210);
-        doc.line(left, y, pageW - left, y);
-        y += 16;
+        doc.line(left, y, right, y);
+        y += 18;
       }
 
       ensure(40);
       doc.setFont("helvetica", "bold");
       doc.setFontSize(12);
-      doc.text(`TOTAL DU JOUR : ${formatMoney(total)}`, pageW - left, y, { align: "right" });
+      doc.text(`TOTAL DE LA PERIODE : ${pdfMoney(total)}`, right, y, { align: "right" });
 
-      doc.save(`rapport-ventes-${day}.pdf`);
+      doc.save(`rapport-ventes-${from}_${to}.pdf`);
       toast.success("Rapport PDF généré");
     } catch (e) {
       toast.error(e instanceof Error ? e.message : "Erreur lors de la génération");
@@ -202,19 +228,31 @@ function ReportPage() {
 
   return (
     <AppShell
-      title="Rapport du jour"
-      subtitle="Toutes les fiches de vente et les articles vendus, exportables en PDF"
+      title="Rapport de caisse"
+      subtitle="Ventes d'une période, fiche par fiche, exportables en PDF"
       allow={["admin", "caisse", "comptabilite"]}
     >
       <Card className="mb-6">
         <CardContent className="flex flex-wrap items-end gap-4 py-4">
           <div className="space-y-2">
-            <Label htmlFor="day">Date</Label>
+            <Label htmlFor="from">Du</Label>
             <Input
-              id="day"
+              id="from"
               type="date"
-              value={day}
-              onChange={(e) => setDay(e.target.value)}
+              value={from}
+              max={to}
+              onChange={(e) => setFrom(e.target.value)}
+              className="w-44"
+            />
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="to">Au</Label>
+            <Input
+              id="to"
+              type="date"
+              value={to}
+              min={from}
+              onChange={(e) => setTo(e.target.value)}
               className="w-44"
             />
           </div>
@@ -241,7 +279,7 @@ function ReportPage() {
       ) : sales.length === 0 ? (
         <Card>
           <CardContent className="py-10 text-center text-sm text-muted-foreground">
-            Aucune vente pour cette date.
+            Aucune vente pour cette période.
           </CardContent>
         </Card>
       ) : (
