@@ -155,6 +155,51 @@ export type Database = {
         }
         Relationships: []
       }
+      org_status: {
+        Row: {
+          active: boolean
+          created_at: string
+          disabled_at: string | null
+          note: string | null
+          owner_id: string
+          updated_at: string
+        }
+        Insert: {
+          active?: boolean
+          created_at?: string
+          disabled_at?: string | null
+          note?: string | null
+          owner_id: string
+          updated_at?: string
+        }
+        Update: {
+          active?: boolean
+          created_at?: string
+          disabled_at?: string | null
+          note?: string | null
+          owner_id?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      platform_admins: {
+        Row: {
+          created_at: string
+          id: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       products: {
         Row: {
           cost_price: number
@@ -309,6 +354,7 @@ export type Database = {
         Returns: boolean
       }
       is_member: { Args: never; Returns: boolean }
+      is_platform_admin: { Args: never; Returns: boolean }
     }
     Enums: {
       app_role: "admin" | "caisse" | "comptabilite"
