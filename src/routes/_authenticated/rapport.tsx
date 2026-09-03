@@ -50,7 +50,7 @@ function firstOfMonthISO() {
 /** Montant ASCII pur : jsPDF (helvetica) rend mal l'espace insécable de fr-FR. */
 function pdfMoney(value: number): string {
   const n = Number.isFinite(value) ? value : 0;
-  const [int, dec] = Math.abs(n).toFixed(2).split(".");
+  const [int = "0", dec = "00"] = Math.abs(n).toFixed(2).split(".");
   const grouped = int.replace(/\B(?=(\d{3})+(?!\d))/g, " ");
   return `${n < 0 ? "-" : ""}${grouped}.${dec} ${CURRENCY}`;
 }
