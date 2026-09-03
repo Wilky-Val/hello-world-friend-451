@@ -58,7 +58,7 @@ export function useMembership() {
 export function canAccess(role: AppRole | undefined, path: string): boolean {
   if (!role) return false;
   if (role === "admin") return true;
-  if (role === "caisse") return path === "/caisse";
-  if (role === "comptabilite") return path === "/comptabilite";
+  if (role === "caisse") return path === "/caisse" || path === "/rapport";
+  if (role === "comptabilite") return path === "/comptabilite" || path === "/rapport";
   return false;
 }
