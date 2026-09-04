@@ -1,11 +1,12 @@
 import { Link, useNavigate } from "@tanstack/react-router";
-import { Building2, FileText, LogOut, Package, Receipt, Users, Wallet } from "lucide-react";
+import { Building2, FileText, LogOut, Package, Receipt, Shield, Users, Wallet } from "lucide-react";
 import type { ReactNode } from "react";
 
 import { RoleGate } from "@/components/RoleGate";
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
 import { ROLE_LABELS, canAccess, useMembership, type AppRole } from "@/lib/roles";
+import { useIsPlatformAdmin } from "@/lib/platform";
 
 const NAV = [
   { to: "/caisse", label: "Caisse", icon: Receipt },
@@ -30,6 +31,7 @@ export function AppShell({
   const navigate = useNavigate();
   const { data: membership } = useMembership();
   const role = membership?.role;
+  const { data: isPlatformAdmin } = useIsPlatformAdmin();
 
   const items = NAV.filter((item) => canAccess(role, item.to) || (role === "admin"));
 
@@ -52,6 +54,16 @@ export function AppShell({
                 {label}
               </Link>
             ))}
+            {isPlatformAdmin ? (
+              <Link
+                to="/super-admin"
+                className="flex items-center gap-2 rounded-md px-3 py-2 text-sm font-medium text-muted-foreground transition-colors hover:bg-accent hover:text-accent-foreground"
+                activeProps={{ className: "bg-primary/10 text-primary" }}
+              >
+                <Shield className="size-4" />
+                Super Admin
+              </Link>
+            ) : null}
           </nav>
           {role ? (
             <span className="rounded-full bg-secondary px-3 py-1 text-xs font-medium text-secondary-foreground">
