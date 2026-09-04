@@ -118,6 +118,26 @@ function AuthPage() {
           >
             {mode === "login" ? "Pas de compte ? S'inscrire" : "J'ai déjà un compte"}
           </button>
+          <button
+            type="button"
+            className="mt-2 w-full text-sm text-muted-foreground underline-offset-4 hover:underline"
+            disabled={loading}
+            onClick={async () => {
+              if (!email) {
+                toast.error("Entrez d'abord votre email");
+                return;
+              }
+              setLoading(true);
+              const { error } = await supabase.auth.resetPasswordForEmail(email, {
+                redirectTo: `${window.location.origin}/reset-password`,
+              });
+              setLoading(false);
+              if (error) toast.error(error.message);
+              else toast.success("Email de réinitialisation envoyé. Vérifiez votre boîte mail.");
+            }}
+          >
+            Mot de passe oublié ?
+          </button>
         </CardContent>
       </Card>
     </div>
