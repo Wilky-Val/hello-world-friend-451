@@ -1,0 +1,1 @@
+DROP POLICY IF EXISTS "bootstrap own shop" ON public.org_members;
