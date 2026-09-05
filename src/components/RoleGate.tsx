@@ -3,10 +3,11 @@ import type { ReactNode } from "react";
 
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { ROLE_HOME, useMembership, type AppRole } from "@/lib/roles";
+import { ROLE_HOME, useAccountState, type AppRole } from "@/lib/roles";
 
 export function RoleGate({ allow, children }: { allow: AppRole[]; children: ReactNode }) {
-  const { data: membership, isPending } = useMembership();
+  const { data: account, isPending } = useAccountState();
+  const membership = account?.membership ?? null;
 
   if (isPending) {
     return <p className="text-sm text-muted-foreground">Chargement…</p>;
