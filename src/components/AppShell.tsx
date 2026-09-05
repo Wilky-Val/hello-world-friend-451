@@ -5,7 +5,8 @@ import type { ReactNode } from "react";
 import { RoleGate } from "@/components/RoleGate";
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
-import { ROLE_LABELS, canAccess, useMembership, type AppRole } from "@/lib/roles";
+import { ROLE_LABELS, canAccess, useAccountState, type AppRole } from "@/lib/roles";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { useIsPlatformAdmin } from "@/lib/platform";
 
 const NAV = [
@@ -29,9 +30,11 @@ export function AppShell({
   children: ReactNode;
 }) {
   const navigate = useNavigate();
-  const { data: membership } = useMembership();
+  const { data: account, isPending } = useAccountState();
+  const membership = account?.membership ?? null;
   const role = membership?.role;
   const { data: isPlatformAdmin } = useIsPlatformAdmin();
+  const blocked = Boolean(!isPending && membership && !account?.active && !account?.isPlatformAdmin);
 
   const items = NAV.filter((item) => canAccess(role, item.to) || (role === "admin"));
 
@@ -43,7 +46,7 @@ export function AppShell({
             Mini<span className="text-primary">POS</span>
           </Link>
           <nav className="flex flex-1 flex-wrap gap-1">
-            {items.map(({ to, label, icon: Icon }) => (
+            {(blocked ? [] : items).map(({ to, label, icon: Icon }) => (
               <Link
                 key={to}
                 to={to}
@@ -89,7 +92,32 @@ export function AppShell({
           <h1 className="text-2xl font-semibold tracking-tight text-foreground">{title}</h1>
           {subtitle ? <p className="text-sm text-muted-foreground">{subtitle}</p> : null}
         </div>
-        {allow ? <RoleGate allow={allow}>{children}</RoleGate> : children}
+        {blocked ? (
+          <Card className="max-w-md">
+            <CardHeader>
+              <CardTitle>Compte désactivé</CardTitle>
+              <CardDescription>
+                Ce compte entreprise a été désactivé — contactez l'administrateur de la plateforme
+                pour le réactiver.
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <Button
+                variant="outline"
+                onClick={async () => {
+                  await supabase.auth.signOut();
+                  navigate({ to: "/auth" });
+                }}
+              >
+                Se déconnecter
+              </Button>
+            </CardContent>
+          </Card>
+        ) : allow ? (
+          <RoleGate allow={allow}>{children}</RoleGate>
+        ) : (
+          children
+        )}
       </main>
     </div>
   );

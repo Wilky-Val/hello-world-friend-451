@@ -5,7 +5,10 @@ import { toast } from "sonner";
 
 import { AppShell } from "@/components/AppShell";
 import { Button } from "@/components/ui/button";
-import { listOrgAccounts, setOrgActive } from "@/lib/platform.functions";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { createOrgAccount, listOrgAccounts, setOrgActive } from "@/lib/platform.functions";
+import { useState } from "react";
 
 export const Route = createFileRoute("/_authenticated/super-admin")({
   component: SuperAdminPage,
@@ -24,6 +27,10 @@ export const Route = createFileRoute("/_authenticated/super-admin")({
 function SuperAdminPage() {
   const list = useServerFn(listOrgAccounts);
   const toggle = useServerFn(setOrgActive);
+  const create = useServerFn(createOrgAccount);
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [businessName, setBusinessName] = useState("");
   const qc = useQueryClient();
 
   const accounts = useQuery({ queryKey: ["org-accounts"], queryFn: () => list() });
@@ -37,8 +44,46 @@ function SuperAdminPage() {
     onError: (e: any) => toast.error(e?.message ?? "Erreur"),
   });
 
+  const createMutation = useMutation({
+    mutationFn: () => create({ data: { email, password, businessName } }),
+    onSuccess: () => {
+      toast.success("Compte entreprise créé");
+      setEmail("");
+      setPassword("");
+      setBusinessName("");
+      qc.invalidateQueries({ queryKey: ["org-accounts"] });
+    },
+    onError: (e: any) => toast.error(e?.message ?? "Erreur"),
+  });
+
   return (
     <AppShell title="Super Admin" subtitle="Comptes entreprise (admin) de la plateforme">
+      <form
+        className="mb-6 grid gap-3 rounded-lg border border-border p-4 sm:grid-cols-4"
+        onSubmit={(e) => {
+          e.preventDefault();
+          createMutation.mutate();
+        }}
+      >
+        <div className="space-y-2">
+          <Label htmlFor="bname">Nom de l'entreprise</Label>
+          <Input id="bname" required maxLength={120} value={businessName} onChange={(e) => setBusinessName(e.target.value)} />
+        </div>
+        <div className="space-y-2">
+          <Label htmlFor="bemail">Email admin</Label>
+          <Input id="bemail" type="email" required value={email} onChange={(e) => setEmail(e.target.value)} />
+        </div>
+        <div className="space-y-2">
+          <Label htmlFor="bpass">Mot de passe</Label>
+          <Input id="bpass" type="password" required minLength={6} value={password} onChange={(e) => setPassword(e.target.value)} />
+        </div>
+        <div className="flex items-end">
+          <Button type="submit" className="w-full" disabled={createMutation.isPending}>
+            Créer le compte entreprise
+          </Button>
+        </div>
+      </form>
+
       {accounts.isLoading ? (
         <p className="text-sm text-muted-foreground">Chargement…</p>
       ) : accounts.error ? (
