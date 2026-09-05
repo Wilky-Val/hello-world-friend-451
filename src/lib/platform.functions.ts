@@ -81,3 +81,50 @@ export const setOrgActive = createServerFn({ method: "POST" })
     if (error) throw new Error(error.message);
     return { ok: true };
   });
+
+export const createOrgAccount = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((data: unknown) =>
+    z
+      .object({
+        email: z.string().trim().email().max(255),
+        password: z.string().min(6).max(72),
+        businessName: z.string().trim().min(1).max(120),
+      })
+      .parse(data),
+  )
+  .handler(async ({ context, data }) => {
+    await assertPlatformAdmin(context.supabase);
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+
+    const { data: created, error: createErr } = await supabaseAdmin.auth.admin.createUser({
+      email: data.email,
+      password: data.password,
+      email_confirm: true,
+    });
+    if (createErr) throw new Error(createErr.message);
+    const userId = created.user?.id;
+    if (!userId) throw new Error("Création du compte impossible");
+
+    const { error: memberErr } = await supabaseAdmin.from("org_members").insert({
+      user_id: userId,
+      owner_id: userId,
+      role: "admin",
+      display_name: data.businessName,
+    });
+    if (memberErr) throw new Error(memberErr.message);
+
+    const { error: statusErr } = await supabaseAdmin
+      .from("org_status")
+      .upsert({ owner_id: userId, active: true, disabled_at: null }, { onConflict: "owner_id" });
+    if (statusErr) throw new Error(statusErr.message);
+
+    const { error: profileErr } = await supabaseAdmin.from("business_profiles").insert({
+      user_id: userId,
+      owner_id: userId,
+      name: data.businessName,
+    });
+    if (profileErr) throw new Error(profileErr.message);
+
+    return { ok: true, ownerId: userId };
+  });
