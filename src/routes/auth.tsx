@@ -29,7 +29,6 @@ export const Route = createFileRoute("/auth")({
 
 function AuthPage() {
   const navigate = useNavigate();
-  const [mode, setMode] = useState<"login" | "signup">("login");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
@@ -50,17 +49,7 @@ function AuthPage() {
     e.preventDefault();
     setLoading(true);
     try {
-      if (mode === "signup") {
-        const { error } = await supabase.auth.signUp({
-          email,
-          password,
-          options: { emailRedirectTo: window.location.origin },
-        });
-        if (error) throw error;
-        toast.success("Compte créé. Vous pouvez vous connecter.");
-        setMode("login");
-      } else {
-        const { error } = await supabase.auth.signInWithPassword({ email, password });
+      const { error } = await supabase.auth.signInWithPassword({ email, password });
         if (error) throw error;
         await goHome();
       }
@@ -80,7 +69,7 @@ function AuthPage() {
             Mini<span className="text-primary">POS</span>
           </CardTitle>
           <CardDescription>
-            {mode === "login" ? "Connectez-vous à votre caisse." : "Créez votre compte boutique."}
+            Connectez-vous à votre caisse.
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -108,19 +97,15 @@ function AuthPage() {
               />
             </div>
             <Button type="submit" className="w-full" disabled={loading}>
-              {mode === "login" ? "Se connecter" : "Créer le compte"}
+              Se connecter
             </Button>
           </form>
+          <p className="mt-4 text-center text-xs text-muted-foreground">
+            Les comptes entreprise sont créés par l'administrateur de la plateforme.
+          </p>
           <button
             type="button"
-            className="mt-4 w-full text-sm text-muted-foreground underline-offset-4 hover:underline"
-            onClick={() => setMode(mode === "login" ? "signup" : "login")}
-          >
-            {mode === "login" ? "Pas de compte ? S'inscrire" : "J'ai déjà un compte"}
-          </button>
-          <button
-            type="button"
-            className="mt-2 w-full text-sm text-muted-foreground underline-offset-4 hover:underline"
+            className="mt-3 w-full text-sm text-muted-foreground underline-offset-4 hover:underline"
             disabled={loading}
             onClick={async () => {
               if (!email) {
