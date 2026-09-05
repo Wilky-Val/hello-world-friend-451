@@ -101,6 +101,7 @@ export const createOrgAccount = createServerFn({ method: "POST" })
       email: data.email,
       password: data.password,
       email_confirm: true,
+      user_metadata: { must_change_password: true },
     });
     if (createErr) throw new Error(createErr.message);
     const userId = created.user?.id;

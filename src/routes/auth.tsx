@@ -34,6 +34,11 @@ function AuthPage() {
   const [loading, setLoading] = useState(false);
 
   const goHome = async () => {
+    const { data: auth } = await supabase.auth.getUser();
+    if (auth.user?.user_metadata?.must_change_password) {
+      navigate({ to: "/reset-password" });
+      return;
+    }
     const membership = await fetchMembership();
     navigate({ to: membership ? ROLE_HOME[membership.role] : "/caisse" });
   };
