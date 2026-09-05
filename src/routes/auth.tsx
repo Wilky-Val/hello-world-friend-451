@@ -35,7 +35,7 @@ function AuthPage() {
 
   const goHome = async () => {
     const { data: auth } = await supabase.auth.getUser();
-    if (auth.user?.user_metadata?.must_change_password) {
+    if (auth.user?.user_metadata?.["must_change_password"]) {
       navigate({ to: "/reset-password" });
       return;
     }
