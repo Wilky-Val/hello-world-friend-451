@@ -50,9 +50,8 @@ function AuthPage() {
     setLoading(true);
     try {
       const { error } = await supabase.auth.signInWithPassword({ email, password });
-        if (error) throw error;
-        await goHome();
-      }
+      if (error) throw error;
+      await goHome();
 
     } catch (err) {
       toast.error(err instanceof Error ? err.message : "Erreur de connexion");
