@@ -74,7 +74,7 @@ function SuperAdminPage() {
           <Input id="bemail" type="email" required value={email} onChange={(e) => setEmail(e.target.value)} />
         </div>
         <div className="space-y-2">
-          <Label htmlFor="bpass">Mot de passe</Label>
+          <Label htmlFor="bpass">Mot de passe temporaire</Label>
           <Input id="bpass" type="password" required minLength={6} value={password} onChange={(e) => setPassword(e.target.value)} />
         </div>
         <div className="flex items-end">
