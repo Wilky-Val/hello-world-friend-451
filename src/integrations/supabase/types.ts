@@ -52,6 +52,7 @@ export type Database = {
       }
       cash_sessions: {
         Row: {
+          cashier_name: string | null
           closed_at: string | null
           closing_amount: number | null
           counted_amount: number | null
@@ -65,6 +66,7 @@ export type Database = {
           user_id: string
         }
         Insert: {
+          cashier_name?: string | null
           closed_at?: string | null
           closing_amount?: number | null
           counted_amount?: number | null
@@ -78,6 +80,7 @@ export type Database = {
           user_id: string
         }
         Update: {
+          cashier_name?: string | null
           closed_at?: string | null
           closing_amount?: number | null
           counted_amount?: number | null
@@ -295,6 +298,7 @@ export type Database = {
       }
       sales: {
         Row: {
+          cashier_name: string | null
           change_due: number
           cost_total: number
           created_at: string
@@ -308,6 +312,7 @@ export type Database = {
           user_id: string
         }
         Insert: {
+          cashier_name?: string | null
           change_due?: number
           cost_total?: number
           created_at?: string
@@ -321,6 +326,7 @@ export type Database = {
           user_id: string
         }
         Update: {
+          cashier_name?: string | null
           change_due?: number
           cost_total?: number
           created_at?: string

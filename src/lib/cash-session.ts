@@ -11,7 +11,19 @@ export type CashSession = {
   note: string | null;
   opened_at: string;
   closed_at: string | null;
+  cashier_name: string | null;
 };
+
+export async function fetchCashierName(): Promise<string> {
+  const { data: auth } = await supabase.auth.getUser();
+  if (!auth.user) return "";
+  const { data } = await supabase
+    .from("org_members")
+    .select("display_name")
+    .eq("user_id", auth.user.id)
+    .maybeSingle();
+  return data?.display_name?.trim() || auth.user.email || "";
+}
 
 export function useOpenSession() {
   return useQuery({
