@@ -84,9 +84,10 @@ function CashierPage() {
       if (!uid) throw new Error("Session expirée");
       const amount = Number(openingAmount);
       if (!Number.isFinite(amount) || amount < 0) throw new Error("Montant invalide");
+      const cashierName = await fetchCashierName();
       const { error } = await supabase
         .from("cash_sessions")
-        .insert({ user_id: uid, opening_amount: amount });
+        .insert({ user_id: uid, opening_amount: amount, cashier_name: cashierName || null });
       if (error) throw error;
     },
     onSuccess: () => {
@@ -185,6 +186,7 @@ function CashierPage() {
       const vide = lines.find((l) => Number(l.product.stock_qty) < 1);
       if (vide) throw new Error(`Stock VIDE : ${vide.product.name}`);
 
+      const cashierName = await fetchCashierName();
 
       const { data: sale, error: saleError } = await supabase
         .from("sales")
@@ -196,6 +198,7 @@ function CashierPage() {
           change_due: change > 0 ? change : 0,
           customer: customer.trim() || null,
           session_id: session.id,
+          cashier_name: cashierName || null,
         })
         .select("*")
         .single();
@@ -229,6 +232,7 @@ function CashierPage() {
         total,
         paid: paidNum,
         change_due: change > 0 ? change : 0,
+        cashier: cashierName,
         lines: lines.map((l) => ({
           name: l.product.name,
           qty: l.qty,
@@ -307,7 +311,8 @@ function CashierPage() {
               <p className="font-semibold text-primary">{formatMoney(expectedCash)}</p>
             </div>
             <div className="ml-auto text-xs text-muted-foreground">
-              Ouverte le {formatDate(session.opened_at)}
+              <p>Ouverte le {formatDate(session.opened_at)}</p>
+              {session.cashier_name ? <p>Caissier : {session.cashier_name}</p> : null}
             </div>
             <Button variant="outline" size="sm" onClick={() => setCloseOpen(true)}>
               <Lock className="size-4" /> Fermer la caisse
@@ -532,6 +537,9 @@ function CashierPage() {
                 <p className="text-[10px]">{formatDate(receipt.created_at)}</p>
                 {receipt.customer ? (
                   <p className="text-[10px]">Client : {receipt.customer}</p>
+                ) : null}
+                {receipt.cashier ? (
+                  <p className="text-[10px]">Caissier : {receipt.cashier}</p>
                 ) : null}
               </div>
 
