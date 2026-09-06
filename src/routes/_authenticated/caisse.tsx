@@ -18,7 +18,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { supabase } from "@/integrations/supabase/client";
 import { useBusiness } from "@/lib/business";
-import { useOpenSession, useSessionSales } from "@/lib/cash-session";
+import { fetchCashierName, useOpenSession, useSessionSales } from "@/lib/cash-session";
 
 import {
   cartCost,
@@ -57,6 +57,7 @@ type Receipt = {
   total: number;
   paid: number;
   change_due: number;
+  cashier: string;
   lines: { name: string; qty: number; unit_price: number }[];
 };
 
