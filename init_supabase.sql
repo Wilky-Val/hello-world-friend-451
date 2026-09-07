@@ -314,11 +314,12 @@ CREATE POLICY "read own platform admin row" ON public.platform_admins
   FOR SELECT TO authenticated USING (user_id = auth.uid());
 
 -- 11. Storage bucket logos
+-- NOTE : si cette insertion échoue (droits insuffisants), crée le bucket "logos"
+-- à la main dans Storage > New bucket (nom: logos, non public), puis continue.
 INSERT INTO storage.buckets (id, name, public)
 VALUES ('logos', 'logos', false)
 ON CONFLICT (id) DO NOTHING;
 
-ALTER TABLE storage.buckets ENABLE ROW LEVEL SECURITY;
 
 CREATE POLICY "own logos read" ON storage.objects
   FOR SELECT TO authenticated
