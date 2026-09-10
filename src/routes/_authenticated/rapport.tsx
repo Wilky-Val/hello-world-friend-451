@@ -100,15 +100,22 @@ function ReportPage() {
     },
   });
 
-  const total = sales.reduce((sum, s) => sum + Number(s.total), 0);
-  const cost = sales.reduce((sum, s) => sum + Number(s.cost_total), 0);
-  const articles = sales.reduce(
+  const cashiers = Array.from(
+    new Set(sales.map((s) => s.cashier_name).filter((n): n is string => Boolean(n))),
+  ).sort();
+
+  const filteredSales =
+    cashierFilter === "all" ? sales : sales.filter((s) => s.cashier_name === cashierFilter);
+
+  const total = filteredSales.reduce((sum, s) => sum + Number(s.total), 0);
+  const cost = filteredSales.reduce((sum, s) => sum + Number(s.cost_total), 0);
+  const articles = filteredSales.reduce(
     (sum, s) => sum + s.items.reduce((n, i) => n + Number(i.qty), 0),
     0,
   );
 
   async function generatePdf() {
-    if (sales.length === 0) {
+    if (filteredSales.length === 0) {
       toast.error("Aucune vente pour cette période");
       return;
     }
@@ -151,7 +158,7 @@ function ReportPage() {
       // Résumé : deux colonnes bien séparées, une ligne par valeur
       doc.setFont("helvetica", "normal");
       doc.setFontSize(10);
-      doc.text(`Nombre de fiches : ${sales.length}`, left, y);
+      doc.text(`Nombre de fiches : ${filteredSales.length}`, left, y);
       doc.text(`Articles vendus : ${articles}`, midLeft, y);
       y += 15;
       doc.text(`Total des ventes : ${pdfMoney(total)}`, left, y);
@@ -172,7 +179,7 @@ function ReportPage() {
       const colQty = left + 280;
       const colPu = left + 380;
 
-      for (const s of sales) {
+      for (const s of filteredSales) {
         ensure(70);
         doc.setFont("helvetica", "bold");
         doc.setFontSize(11);
@@ -182,7 +189,7 @@ function ReportPage() {
         doc.setFont("helvetica", "normal");
         doc.setFontSize(9);
         doc.text(
-          `${formatDate(s.created_at)}${s.customer ? ` - Client : ${s.customer}` : ""}`,
+          `${formatDate(s.created_at)}${s.customer ? ` - Client : ${s.customer}` : ""}${s.cashier_name ? ` - Caisse : ${s.cashier_name}` : ""}`,
           left,
           y,
         );
@@ -257,9 +264,25 @@ function ReportPage() {
               className="w-44"
             />
           </div>
+          <div className="space-y-2">
+            <Label htmlFor="cashier">Caisse</Label>
+            <select
+              id="cashier"
+              value={cashierFilter}
+              onChange={(e) => setCashierFilter(e.target.value)}
+              className="h-10 w-44 rounded-md border border-input bg-background px-3 text-sm"
+            >
+              <option value="all">Toutes les caisses</option>
+              {cashiers.map((c) => (
+                <option key={c} value={c}>
+                  {c}
+                </option>
+              ))}
+            </select>
+          </div>
           <div className="text-sm">
             <p className="text-muted-foreground">Fiches</p>
-            <p className="font-semibold text-foreground">{sales.length}</p>
+            <p className="font-semibold text-foreground">{filteredSales.length}</p>
           </div>
           <div className="text-sm">
             <p className="text-muted-foreground">Articles vendus</p>
@@ -277,7 +300,7 @@ function ReportPage() {
 
       {isLoading ? (
         <p className="text-sm text-muted-foreground">Chargement...</p>
-      ) : sales.length === 0 ? (
+      ) : filteredSales.length === 0 ? (
         <Card>
           <CardContent className="py-10 text-center text-sm text-muted-foreground">
             Aucune vente pour cette période.
@@ -285,7 +308,7 @@ function ReportPage() {
         </Card>
       ) : (
         <div className="space-y-4">
-          {sales.map((s) => (
+          {filteredSales.map((s) => (
             <Card key={s.id}>
               <CardHeader className="flex-row items-center justify-between gap-2 pb-2">
                 <div>
@@ -293,6 +316,7 @@ function ReportPage() {
                   <p className="text-xs text-muted-foreground">
                     {formatDate(s.created_at)}
                     {s.customer ? ` — ${s.customer}` : ""}
+                    {s.cashier_name ? ` — ${s.cashier_name}` : ""}
                   </p>
                 </div>
                 <span className="font-semibold text-primary">{formatMoney(Number(s.total))}</span>
