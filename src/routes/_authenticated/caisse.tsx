@@ -232,7 +232,7 @@ function CashierPage() {
         total,
         paid: paidNum,
         change_due: change > 0 ? change : 0,
-        cashier: cashierName,
+        cashier: sale.cashier_name || cashierName,
         lines: lines.map((l) => ({
           name: l.product.name,
           qty: l.qty,
