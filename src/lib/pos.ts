@@ -8,7 +8,6 @@ export type Product = {
   sale_price: number;
   created_at: string;
 };
-
 export type Expense = {
   id: string;
   user_id: string;
@@ -18,7 +17,6 @@ export type Expense = {
   spent_at: string;
   created_at: string;
 };
-
 export type Sale = {
   id: string;
   user_id: string;
@@ -32,8 +30,6 @@ export type Sale = {
   cashier_name: string | null;
   session_id: string | null;
 };
-};
-
 export type SaleItem = {
   id: string;
   sale_id: string;
@@ -43,14 +39,11 @@ export type SaleItem = {
   unit_price: number;
   unit_cost: number;
 };
-
 export type CartLine = {
   product: Product;
   qty: number;
 };
-
 export const CURRENCY = "HTG";
-
 export function formatMoney(value: number): string {
   const n = Number.isFinite(value) ? value : 0;
   return `${n.toLocaleString("fr-FR", {
@@ -58,18 +51,15 @@ export function formatMoney(value: number): string {
     maximumFractionDigits: 2,
   })} ${CURRENCY}`;
 }
-
 export function formatDate(iso: string): string {
   return new Date(iso).toLocaleString("fr-FR", {
     dateStyle: "short",
     timeStyle: "short",
   });
 }
-
 export function cartTotal(lines: CartLine[]): number {
   return lines.reduce((sum, l) => sum + l.qty * Number(l.product.sale_price), 0);
 }
-
 export function cartCost(lines: CartLine[]): number {
   return lines.reduce((sum, l) => sum + l.qty * Number(l.product.cost_price), 0);
 }
