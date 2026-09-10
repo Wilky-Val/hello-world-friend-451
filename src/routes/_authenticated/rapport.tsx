@@ -64,6 +64,7 @@ type SaleWithItems = Sale & { items: SaleItem[] };
 function ReportPage() {
   const [from, setFrom] = useState(firstOfMonthISO());
   const [to, setTo] = useState(todayISO());
+  const [cashierFilter, setCashierFilter] = useState<string>("all");
   const { data: business } = useBusiness();
   const [building, setBuilding] = useState(false);
 
