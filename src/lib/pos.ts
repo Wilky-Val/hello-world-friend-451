@@ -29,6 +29,9 @@ export type Sale = {
   change_due: number;
   customer: string | null;
   created_at: string;
+  cashier_name: string | null;
+  session_id: string | null;
+};
 };
 
 export type SaleItem = {
